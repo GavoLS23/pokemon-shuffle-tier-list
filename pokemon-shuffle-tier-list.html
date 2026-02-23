@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Shuffle — Tier List de Capacidades</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --s: #FF4E5E; --a: #FF9F1C; --b: #c8b400; --c: #4aaa22; --d: #00B4D8; --f: #7B5EA7;
+    --bg: #0d0d1a; --card: #181828; --border: #2a2a45; --text: #e8e8f5; --muted: #888aaa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; min-height: 100vh; padding: 2rem 1rem 4rem; background-image: radial-gradient(ellipse at 20% 0%, rgba(255,78,94,0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(120,214,75,0.06) 0%, transparent 60%); }
+  header { text-align: center; margin-bottom: 2rem; }
+  header h1 { font-family: 'Press Start 2P', monospace; font-size: clamp(0.65rem, 2.2vw, 1rem); color: #fff; line-height: 1.9; text-shadow: 0 0 20px rgba(255,159,28,0.6); }
+  header h1 span { color: var(--a); }
+  header p { color: var(--muted); font-size: 0.82rem; margin-top: 0.6rem; font-weight: 600; }
+  .hint { text-align: center; font-size: 0.75rem; color: var(--muted); margin-bottom: 1.4rem; font-weight: 700; letter-spacing: 0.04em; }
+  .hint span { color: var(--a); }
+  .legend { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 1.8rem; }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; font-weight: 700; background: var(--card); padding: 0.25rem 0.65rem; border-radius: 99px; border: 1px solid var(--border); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .tier-section { max-width: 960px; margin: 0 auto 0.8rem; display: grid; grid-template-columns: 52px 1fr; gap: 0.5rem; align-items: stretch; }
+  .tier-label { display: flex; align-items: center; justify-content: center; border-radius: 10px; font-family: 'Press Start 2P', monospace; font-size: 1.25rem; font-weight: 900; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); min-height: 56px; }
+  .tier-s .tier-label { background: var(--s); box-shadow: 0 0 16px rgba(255,78,94,0.4); }
+  .tier-a .tier-label { background: var(--a); box-shadow: 0 0 16px rgba(255,159,28,0.4); }
+  .tier-b .tier-label { background: var(--b); box-shadow: 0 0 16px rgba(200,180,0,0.4); }
+  .tier-c .tier-label { background: var(--c); box-shadow: 0 0 16px rgba(74,170,34,0.4); }
+  .tier-d .tier-label { background: var(--d); box-shadow: 0 0 16px rgba(0,180,216,0.4); }
+  .tier-f .tier-label { background: var(--f); box-shadow: 0 0 16px rgba(123,94,167,0.4); }
+  .tier-cards { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.65rem; display: flex; flex-wrap: wrap; gap: 0.45rem; align-content: flex-start; }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.18s ease; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; user-select: none; }
+  .card:hover { transform: translateY(-2px) scale(1.03); border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.09); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .card:active { transform: scale(0.97); }
+  .card-name { color: #fff; font-weight: 900; font-size: 0.82rem; }
+  .card-name-en { color: var(--muted); font-size: 0.61rem; font-weight: 600; font-style: italic; }
+  .card-tag { font-size: 0.57rem; padding: 1px 5px; border-radius: 4px; font-weight: 800; margin-top: 2px; }
+  .tag-damage { background: rgba(255,78,94,0.2); color: #ff8a96; }
+  .tag-support { background: rgba(0,180,216,0.2); color: #5dd4f0; }
+  .tag-disruption { background: rgba(249,224,0,0.2); color: #e8c800; }
+  .tag-status { background: rgba(100,200,60,0.2); color: #80d860; }
+  .tag-combo { background: rgba(255,159,28,0.2); color: #ffbe58; }
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(7px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1.2rem; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: #12121f; border: 1px solid rgba(255,255,255,0.11); border-radius: 16px; padding: 1.8rem 1.8rem 1.5rem; max-width: 620px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 70px rgba(0,0,0,0.85); transform: scale(0.9) translateY(24px); transition: transform 0.26s cubic-bezier(0.34,1.56,0.64,1); position: relative; }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.07); border: none; color: var(--muted); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .modal-close:hover { background: rgba(255,255,255,0.17); color: #fff; }
+  .modal-tier-badge { display: inline-block; padding: 2px 10px; border-radius: 6px; font-family: 'Press Start 2P', monospace; font-size: 0.62rem; margin-bottom: 0.55rem; }
+  .modal h2 { font-size: 1.25rem; font-weight: 900; color: #fff; margin-bottom: 0.15rem; }
+  .modal-en { color: var(--muted); font-size: 0.76rem; font-style: italic; margin-bottom: 0.8rem; font-weight: 600; }
+  .modal-desc { color: #bbb; font-size: 0.81rem; line-height: 1.65; background: rgba(255,255,255,0.04); padding: 0.75rem 0.9rem; border-radius: 8px; border-left: 3px solid var(--a); margin-bottom: 1.1rem; }
+  .modal-section-title { font-size: 0.68rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.55rem; }
+  .pokemon-grid { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .pokemon-chip { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; padding: 0.28rem 0.6rem; font-size: 0.73rem; font-weight: 700; color: var(--text); transition: background 0.15s; cursor: default; }
+  .pokemon-chip:hover { background: rgba(255,255,255,0.12); }
+  .pokemon-chip.alt { opacity: 0.58; font-style: italic; }
+  .modal-note { margin-top: 1rem; font-size: 0.69rem; color: var(--muted); font-weight: 600; font-style: italic; line-height: 1.5; }
+  footer { text-align: center; color: var(--muted); font-size: 0.71rem; margin-top: 2.5rem; font-weight: 600; }
+  footer span { color: var(--a); }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>POKÉMON SHUFFLE<br><span>TIER LIST DE CAPACIDADES</span></h1>
+  <p>Nombres oficiales en español latino · Meta final SL5</p>
+</header>
+
+<p class="hint">Haz <span>clic</span> en cualquier capacidad para ver sus Pokémon</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--s)"></div>Daño</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--d)"></div>Soporte</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c8b400)"></div>Disrupción</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c)"></div>Estado</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--a)"></div>Combo</div>
+</div>
+
+<!-- S -->
+<div class="tier-section tier-s">
+  <div class="tier-label">S</div>
+  <div class="tier-cards">
+    <div class="card" onclick="openModal('sinister')"><span class="card-name">Poder funesto</span><span class="card-name-en">Sinister Power</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('power4plus')"><span class="card-name">Fuerza 4+</span><span class="card-name-en">Power of 4+</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('typelesscombo')"><span class="card-name">Combo sin tipo</span><span class="card-name-en">Typeless Combo</span><span class="card-tag tag-combo">Combo</span></div>
+    <div class="card" onclick="openModal('barriershot')"><span class="card-name">Anulabarreras</span><span class="card-name-en">Barrier Shot</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('blockshot')"><span class="card-name">Quitainterferencia</span><span class="card-name-en">Block Shot</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('hittingstreak')"><span class="card-name">Racha de golpes</span><span class="card-name-en">Hitting Streak</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('lastditch')"><span class="card-name">Colofón</span><span class="card-name-en">Last-Ditch Effort</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('crowdcontrol')"><span class="card-name">Dominio</span><span class="card-name-en">Crowd Control</span><span class="card-tag tag-damage">Daño</span></div>
+  </div>
+</div>
+
+<!-- A -->
+<div class="tier-section tier-a">
+  <div class="tier-label">A</div>
+  <div class="tier-cards">
+    <div class="card" onclick="openModal('megaboostplus')"><span class="card-name">Megafuerza+</span><span class="card-name-en">Mega Boost+</span><span class="card-tag tag-support">Soporte</span></div>
+    <div class="card" onclick="openModal('rockbreak')"><span class="card-name">Destroza rocas+</span><span class="card-name-en">Rock Break+</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('sleepcharm')"><span class="card-name">Adormilante</span><span class="card-name-en">Sleep Charm</span><span class="card-tag tag-status">Estado</span></div>
+    <div class="card" onclick="openModal('freeze')"><span class="card-name">Congelante</span><span class="card-name-en">Freeze</span><span class="card-tag tag-status">Estado</span></div>
+    <div class="card" onclick="openModal('paralyze')"><span class="card-name">Paralizante</span><span class="card-name-en">Paralyze</span><span class="card-tag tag-status">Estado</span></div>
+    <div class="card" onclick="openModal('power5plus')"><span class="card-name">Fuerza 5+</span><span class="card-name-en">Power of 5+</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('dragontalon')"><span class="card-name">Zarpa dragón</span><span class="card-name-en">Dragon Talon</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('shotout')"><span class="card-name">Despeja camino</span><span class="card-name-en">Shot Out</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('ejectplus')"><span class="card-name">Expulsa+</span><span class="card-name-en">Eject+</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('swapplus')"><span class="card-name">Intercambia+</span><span class="card-name-en">Swap+</span><span class="card-tag tag-disruption">Disrupción</span></div>
+  </div>
+</div>
+
+<!-- B -->
+<div class="tier-section tier-b">
+  <div class="tier-label">B</div>
+  <div class="tier-cards">
+    <div class="card" onclick="openModal('nosedive')"><span class="card-name">Caída en picado</span><span class="card-name-en">Nosedive</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('risktaker')"><span class="card-name">Temerario</span><span class="card-name-en">Risk-Taker</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('opportunist')"><span class="card-name">Certero</span><span class="card-name-en">Opportunist</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('powerhug')"><span class="card-name">Abrazote</span><span class="card-name-en">Power Hug</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('megaboost')"><span class="card-name">Megafuerza</span><span class="card-name-en">Mega Boost</span><span class="card-tag tag-support">Soporte</span></div>
+    <div class="card" onclick="openModal('poisonpact')"><span class="card-name">Pacto venenoso</span><span class="card-name-en">Poison Pact</span><span class="card-tag tag-combo">Combo</span></div>
+    <div class="card" onclick="openModal('barrierbash')"><span class="card-name">Rompebarreras+</span><span class="card-name-en">Barrier Bash+</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('spookify')"><span class="card-name">Aterrizante</span><span class="card-name-en">Spookify+</span><span class="card-tag tag-status">Estado</span></div>
+    <div class="card" onclick="openModal('skyblast')"><span class="card-name">Ataque aéreo</span><span class="card-name-en">Sky Blast</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('rockcombo')"><span class="card-name">Combo roca</span><span class="card-name-en">Rock Combo</span><span class="card-tag tag-combo">Combo</span></div>
+  </div>
+</div>
+
+<!-- C -->
+<div class="tier-section tier-c">
+  <div class="tier-label">C</div>
+  <div class="tier-cards">
+    <div class="card" onclick="openModal('stabilize')"><span class="card-name">Estabiliza+</span><span class="card-name-en">Stabilize+</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('burn')"><span class="card-name">Abrasivo</span><span class="card-name-en">Burn</span><span class="card-tag tag-status">Estado</span></div>
+    <div class="card" onclick="openModal('poison')"><span class="card-name">Envenenante</span><span class="card-name-en">Poison</span><span class="card-tag tag-status">Estado</span></div>
+    <div class="card" onclick="openModal('crowdpower')"><span class="card-name">Dominio menor</span><span class="card-name-en">Crowd Power</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('hittingstreakplus')"><span class="card-name">Racha de golpes+</span><span class="card-name-en">Hitting Streak+</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('nonstopplus')"><span class="card-name">Sin parar+</span><span class="card-name-en">Non Stop+</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('dragonshriek')"><span class="card-name">Alarido dragón</span><span class="card-name-en">Dragon Shriek</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('quake')"><span class="card-name">Terremoto</span><span class="card-name-en">Quake</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('pyre')"><span class="card-name">Hoguera</span><span class="card-name-en">Pyre</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('mindzap')"><span class="card-name">Choque mental</span><span class="card-name-en">Mind Zap</span><span class="card-tag tag-status">Estado</span></div>
+  </div>
+</div>
+
+<!-- D -->
+<div class="tier-section tier-d">
+  <div class="tier-label">D</div>
+  <div class="tier-cards">
+    <div class="card" onclick="openModal('quirky')"><span class="card-name">Antojo</span><span class="card-name-en">Quirky</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('quirkyplus')"><span class="card-name">Antojo+</span><span class="card-name-en">Quirky+</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('megaboostpp')"><span class="card-name">Megafuerza++</span><span class="card-name-en">Mega Boost++</span><span class="card-tag tag-support">Soporte</span></div>
+    <div class="card" onclick="openModal('relentless')"><span class="card-name">Tenaz</span><span class="card-name-en">Relentless</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('pummel')"><span class="card-name">Beligerante</span><span class="card-name-en">Pummel</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('sandsport')"><span class="card-name">Arenal</span><span class="card-name-en">Sand Sport</span><span class="card-tag tag-support">Soporte</span></div>
+  </div>
+</div>
+
+<!-- F -->
+<div class="tier-section tier-f">
+  <div class="tier-label">F</div>
+  <div class="tier-cards">
+    <div class="card" onclick="openModal('whirlpool')"><span class="card-name">Torbellino</span><span class="card-name-en">Whirlpool</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('skillbase')"><span class="card-name">Capacidad base</span><span class="card-name-en">Skill (base)</span><span class="card-tag tag-damage">Daño</span></div>
+    <div class="card" onclick="openModal('agility')"><span class="card-name">Agilidad</span><span class="card-name-en">Agility</span><span class="card-tag tag-support">Soporte</span></div>
+    <div class="card" onclick="openModal('rockify')"><span class="card-name">Piedrifica</span><span class="card-name-en">Rockify</span><span class="card-tag tag-disruption">Disrupción</span></div>
+    <div class="card" onclick="openModal('naptime')"><span class="card-name">Siestita</span><span class="card-name-en">Nap Time</span><span class="card-tag tag-status">Estado</span></div>
+  </div>
+</div>
+
+<footer>
+  Pokémon Shuffle — <span>Tier List de Capacidades</span><br>
+  Nombres oficiales en español · Fuentes: WikiDex, Serebii, GameFAQs, Pokemon Shuffle Wiki
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeOnOverlay(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalTierBadge" class="modal-tier-badge"></div>
+    <h2 id="modalName"></h2>
+    <div id="modalEn" class="modal-en"></div>
+    <div id="modalDesc" class="modal-desc"></div>
+    <div class="modal-section-title">Pokémon con esta capacidad</div>
+    <div class="pokemon-grid" id="modalPokemon"></div>
+    <div id="modalAlt"></div>
+    <div id="modalNote" class="modal-note"></div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  sinister: {
+    name:"Poder funesto", en:"Sinister Power", tier:"S", tierColor:"#FF4E5E",
+    desc:"Aumenta el daño durante combos. Por cada combo, el multiplicador sube: ×1.5 en el 2.º y ×2 a partir del 3.º. Una de las capacidades de daño más poderosas y consistentes del juego a SL5.",
+    pokemon:["Umbreon","Eevee (variocolor)","Darkrai","Giratina (modificada)","Sableye","Spiritomb","Absol","Honchkrow","Banette","Shuppet","Dusknoir","Mismagius","Poochyena","Mightyena","Sneasel","Weavile"],
+    alt:["Gengar","Haunter","Gastly"],
+    note:"Con SL5 y Cargacapacidad M es la capacidad de daño más consistente del juego. Combo sin tipo es su única competencia real."
+  },
+  power4plus: {
+    name:"Fuerza 4+", en:"Power of 4+", tier:"S", tierColor:"#FF4E5E",
+    desc:"Multiplica el ataque cuando hay exactamente 4 Pokémon del mismo tipo en el equipo. Multiplicador muy alto. Requiere construcción específica de equipo monótipo.",
+    pokemon:["Giratina (modificada)","Cresselia","Mewtwo (Armored)","Rayquaza","Dialga","Palkia","Reshiram","Zekrom","Yveltal","Xerneas","Lunala","Solgaleo"],
+    alt:["Pikachu (diversas formas conmemorativas)"],
+    note:"El equipo debe tener exactamente 4 Pokémon del mismo tipo activos para activarse. Con Skill Swapper se puede poner en más portadores."
+  },
+  typelesscombo: {
+    name:"Combo sin tipo", en:"Typeless Combo", tier:"S", tierColor:"#FF4E5E",
+    desc:"Aumenta el daño de todos los Pokémon del equipo durante un combo, sin importar el tipo. Multiplica el ataque de todas las fichas que caen en el combo por 1.5. Extremadamente versátil.",
+    pokemon:["Mewtwo (Armored)","Aerodactyl variocolor"],
+    alt:[],
+    note:"Muy pocos Pokémon la poseen de forma nativa. Se obtiene principalmente mediante Skill Swapper. Es la capacidad de soporte de daño más universal."
+  },
+  barriershot: {
+    name:"Anulabarreras", en:"Barrier Shot", tier:"S", tierColor:"#FF4E5E",
+    desc:"Elimina 2 barreras de hielo y multiplica el ataque por 2 simultáneamente. Tasa de activación 60/100/100%. Imprescindible en stages con muchas barreras.",
+    pokemon:["Litten","Pikachu gorra Teselia","Tyranitar variocolor","Sawsbuck verano","Cryogonal","Toxapex"],
+    alt:["Clefairy","Feraligatr","Swellow","Lunatone","Solrock","Groudon","Deoxys defensa","Drifblim","Magnezone","Volcarona","Kyurem blanco","Doublade"],
+    note:"Los Pokémon en itálica obtienen esta capacidad como alterna con Skill Swapper. Litten a SL5 es el portador estándar más accesible."
+  },
+  blockshot: {
+    name:"Quitainterferencia", en:"Block Shot", tier:"S", tierColor:"#FF4E5E",
+    desc:"Elimina 2 bloques de madera y multiplica el ataque por 2. Tasa de activación 50/100/100%. Ideal contra stages llenas de bloques de madera.",
+    pokemon:["Tyrantrum","Turtonator","Pikachu gorra Kalos","Sandslash de Alola","Decidueye"],
+    alt:["Heracross","Machamp","Lucario","Blaziken","Garchomp","Dragonite","Incineroar"],
+    note:"Tyrantrum a SL5 con Cargacapacidad M es la opción principal. Funciona también en stages mixtas con bloques y barreras."
+  },
+  hittingstreak: {
+    name:"Racha de golpes", en:"Hitting Streak", tier:"S", tierColor:"#FF4E5E",
+    desc:"Por cada turno consecutivo que activa la capacidad, el multiplicador sube: ×1.2, ×1.5, ×2, ×2.5... hasta ×5. Devastadora en stages largas si se mantiene la racha.",
+    pokemon:["Zoroark","Mimikyu","Lycanroc nocturno","Incineroar","Marshadow (forma base)","Bisharp"],
+    alt:["Mew","Mewtwo","Jirachi","Hoopa"],
+    note:"Requiere que la capacidad active en turnos consecutivos. Si falla un turno, el contador se reinicia a ×1."
+  },
+  lastditch: {
+    name:"Colofón", en:"Last-Ditch Effort", tier:"S", tierColor:"#FF4E5E",
+    desc:"Multiplica el ataque por 9 en el último turno o con ≤3 segundos restantes en stages de tiempo. Una de las capacidades de daño de un solo golpe más altas del juego.",
+    pokemon:["Snorlax","Bewear","Komala","Slaking","Munchlax"],
+    alt:[],
+    note:"El multiplicador ×9 es enorme, pero solo actúa en el último momento. Combinar con Pokémon de alto ataque base para maximizar."
+  },
+  crowdcontrol: {
+    name:"Dominio", en:"Crowd Control", tier:"S", tierColor:"#FF4E5E",
+    desc:"Aumenta el daño según cuántas fichas de soporte (monedas, barreras, bloques) del rival hay en el tablero. Cuantas más interferencias, mayor el multiplicador.",
+    pokemon:["Genesect","Pheromosa","Buzzwole","Xurkitree","Celesteela","Kartana","Guzzlord","Nihilego","Stakataka","Blacephalon"],
+    alt:[],
+    note:"Ultra Bestias tienen alto ataque base y esta capacidad es ideal para stages donde el rival llena el tablero de disruptores."
+  },
+  megaboostplus: {
+    name:"Megafuerza+", en:"Mega Boost+", tier:"A", tierColor:"#FF9F1C",
+    desc:"Agrega 3 cargas al medidor Mega por activación. Tasa de activación 30/60/100%. Significativamente mejor que Megafuerza base.",
+    pokemon:["Zygarde 10%","Togekiss","Jirachi","Celebi","Pikachu gorra Kalos variocolor","Magearna"],
+    alt:["Shaymin cielo","Latias","Latios","Mew","Victini"],
+    note:"Con 100% de activación al hacer línea de 5 a SL5, es la forma más fiable de activar Megas poderosas rápidamente."
+  },
+  rockbreak: {
+    name:"Destroza rocas+", en:"Rock Break+", tier:"A", tierColor:"#FF9F1C",
+    desc:"Elimina 2 rocas y multiplica el ataque por 2 al mismo tiempo. Tasa de activación 50/100/100%. Fundamental en stages con disruptores de roca.",
+    pokemon:["Landorus (therian)","Zygarde 50%","Excadrill","Garchomp variocolor","Lycanroc mediodía","Palossand"],
+    alt:["Conkeldurr","Machamp","Hariyama","Rhyperior","Bewear"],
+    note:"Muy valorado en las stages principales donde las rocas disruptoras son comunes. Es la versión superior de Destroza rocas."
+  },
+  sleepcharm: {
+    name:"Adormilante", en:"Sleep Charm", tier:"A", tierColor:"#FF9F1C",
+    desc:"Duerme al rival durante 3 turnos, evitando interferencias. Mientras duerme, recibe ×1.2 daño adicional. Activación 5/30/80% a SL5.",
+    pokemon:["Pikachu dormido","Igglybuff","Shaymin tierra","Mesprit","Darkrai","Lilligant","Gothorita","Treecko","Grovyle","Dusclops","Stantler","Slugma","Omanyte","Parasect","Drowzee"],
+    alt:["Buneary","Espurr","Jigglypuff"],
+    note:"No funciona contra tipo Fantasma, Dragón, Siniestro, Roca, Planta, Acero, Hielo ni Lucha. Con SL5 es muy confiable."
+  },
+  freeze: {
+    name:"Congelante", en:"Freeze", tier:"A", tierColor:"#FF9F1C",
+    desc:"Congela al rival durante 3 turnos, impidiendo que coloque interferencias. Mientras está congelado, recibe ×1.5 daño de ataques de tipo Hielo.",
+    pokemon:["Glaceon","Cryogonal","Vanilluxe","Articuno","Regice","Kyurem","Froslass","Beartic","Weavile","Lapras","Piloswine","Mamoswine","Dewgong","Cloyster"],
+    alt:["Sealeo","Walrein"],
+    note:"El multiplicador ×1.5 es muy valioso en stages débiles al Hielo. Combinar con Pokémon de tipo Hielo de alto ataque."
+  },
+  paralyze: {
+    name:"Paralizante", en:"Paralyze", tier:"A", tierColor:"#FF9F1C",
+    desc:"Paraliza al rival durante 3 turnos, evitando interferencias. Cubre tipos inmunes al sueño como Acero, Dragón y Planta.",
+    pokemon:["Raichu","Jolteon","Ampharos","Raikou","Lanturn","Manectric","Luxray","Galvantula","Thundurus","Vikavolt","Electrode","Dedenne","Togedemaru"],
+    alt:["Pachirisu","Pichu","Mareep","Flaaffy"],
+    note:"Esencial para enfrentar tipos inmunes al sueño. Con SL5 y Cargacapacidad M alcanza tasas muy confiables."
+  },
+  power5plus: {
+    name:"Fuerza 5+", en:"Power of 5+", tier:"A", tierColor:"#FF9F1C",
+    desc:"Gran multiplicador al hacer un match de 5 fichas del mismo tipo. Activa siempre al hacer línea de 5. Puede ser demoledor si el tablero lo permite.",
+    pokemon:["Mewtwo","Mew","Arceus","Victini","Diancie","Volcanion","Marshadow","Magearna"],
+    alt:["Celebi","Jirachi","Shaymin"],
+    note:"Requiere que el tablero permita hacer líneas de 5 fichas. En condiciones ideales supera a casi cualquier capacidad."
+  },
+  dragontalon: {
+    name:"Zarpa dragón", en:"Dragon Talon", tier:"A", tierColor:"#FF9F1C",
+    desc:"Multiplica el ataque por 2 con activación 30/60/100%. Consistente y sin condiciones complicadas. Muy sólido en el tipo Dragón.",
+    pokemon:["Garchomp","Noivern","Dragalge","Goodra","Turtonator","Kommo-o","Dragonite","Zygarde 100%","Exeggutor de Alola"],
+    alt:["Dratini","Dragonair","Gible","Gabite","Jangmo-o","Hakamo-o"],
+    note:"A SL5 activa al 100% con líneas de 4 o 5. Es uno de los multiplicadores de daño tipo Dragón más confiables."
+  },
+  shotout: {
+    name:"Despeja camino", en:"Shot Out", tier:"A", tierColor:"#FF9F1C",
+    desc:"Elimina fichas de monedas, piezas de madera o piezas de roca generadas por el rival del tablero, facilitando combos propios.",
+    pokemon:["Golem","Marowak","Crustle","Bastiodon","Rampardos","Lycanroc mediodía"],
+    alt:["Geodude","Graveler","Cubone","Rockruff"],
+    note:"Muy útil cuando el rival llena el tablero con fichas neutras o monedas que interrumpen los combos."
+  },
+  ejectplus: {
+    name:"Expulsa+", en:"Eject+", tier:"A", tierColor:"#FF9F1C",
+    desc:"Elimina 2 fichas de Pokémon enviadas por el rival del tablero con alta probabilidad. Muy útil para despejar el tablero rápidamente.",
+    pokemon:["Diancie","Carbink","Clefable","Togekiss","Sylveon","Comfey","Magearna"],
+    alt:["Cottonee","Whimsicott","Snubbull","Granbull"],
+    note:"La versión '+' elimina 2 fichas vs 1 de la base. En stages con muchas interferencias puede marcar la diferencia."
+  },
+  swapplus: {
+    name:"Intercambia+", en:"Swap+", tier:"A", tierColor:"#FF9F1C",
+    desc:"Intercambia 2 fichas del tablero de posición, permitiendo crear combos en tableros complicados o bloqueados.",
+    pokemon:["Kyurem negro","Kyurem blanco","Reuniclus","Gothitelle","Sigilyph"],
+    alt:["Duosion","Elgyem","Beheeyem"],
+    note:"Versión mejorada de Intercambia. Esencial cuando el tablero está bloqueado y no hay combinaciones disponibles."
+  },
+  nosedive: {
+    name:"Caída en picado", en:"Nosedive", tier:"B", tierColor:"#c8b400",
+    desc:"Multiplica el ataque por 5 ocasionalmente (15/40/70%). Alto riesgo, alta recompensa. Inconsistente pero muy poderosa cuando activa.",
+    pokemon:["Charizard variocolor","Unfezant","Meloetta danza","Minior","Ho-Oh","Skarmory","Masquerain","Altaria","Honchkrow","Gliscor","Braviary","Gyarados"],
+    alt:["Wingull","Pelipper","Pidgeot"],
+    note:"A SL5 mejora a 25/55/80%. Aún puede fallar en momentos clave. No recomendada para stages de clasificación."
+  },
+  risktaker: {
+    name:"Temerario", en:"Risk-Taker", tier:"B", tierColor:"#c8b400",
+    desc:"El daño varía aleatoriamente entre valores muy bajos y muy altos. Con suerte puede superar otros multiplicadores, pero es impredecible.",
+    pokemon:["Linoone","Zangoose","Raticate","Watchog","Bibarel","Liepard","Nickit","Thievul"],
+    alt:["Zigzagoon","Rattata","Purrloin"],
+    note:"El RNG puede arruinar runs importantes. No recomendado para stages competitivas o de alto riesgo."
+  },
+  opportunist: {
+    name:"Certero", en:"Opportunist", tier:"B", tierColor:"#c8b400",
+    desc:"Multiplica el ataque por 1.5 ocasionalmente. Probabilidad 5/10/10%, muy baja. Sin condiciones especiales para activarse.",
+    pokemon:["Pidgey","Nidoran♀","Nidorina","Nidoran♂","Nidorino","Vulpix","Dratini","Pichu","Togepi","Mareep","Flaaffy","Marill","Azumarill","Sudowoodo","Phanpy","Miltank","Surskit","Azurill","Gulpin","Swalot","Swablu","Feebas","Buneary","Lopunny","Purrloin","Audino","Minccino","Cinccino","Vanillite","Vanillish","Espurr","Swirlix","Slurpuff"],
+    alt:[],
+    note:"Muchos Pokémon comunes la poseen. La tasa muy baja hace que sea solo aceptable. Fácil de conseguir pero no sobresale."
+  },
+  powerhug: {
+    name:"Abrazote", en:"Power Hug", tier:"B", tierColor:"#c8b400",
+    desc:"Multiplica el ataque por 5 y frena interferencias 1 turno adicional. Tasa 30/50/80%. Dual: daño + control.",
+    pokemon:["Bewear"],
+    alt:[],
+    note:"Solo Bewear la posee nativamente. El multiplicador ×5 con frenado de interferencias es excelente en las condiciones correctas."
+  },
+  megaboost: {
+    name:"Megafuerza", en:"Mega Boost", tier:"B", tierColor:"#c8b400",
+    desc:"Agrega 2 cargas al medidor Mega por activación. Tasa 25/50/100%. Versión base de Megafuerza+, útil pero inferior.",
+    pokemon:["Slurpuff","Sharpedo","Manectric","Abomasnow","Ampharos","Gardevoir","Altaria","Sceptile","Blaziken","Swampert","Heracross","Beedrill variocolor","Kangaskhan","Glalie","Steelix","Pidgeot","Slowbro"],
+    alt:[],
+    note:"Recomendable cuando no se dispone de Megafuerza+. Cualquier forma de acelerar la Mega sigue siendo valiosa."
+  },
+  poisonpact: {
+    name:"Pacto venenoso", en:"Poison Pact", tier:"B", tierColor:"#c8b400",
+    desc:"Aumenta el daño durante combos cuando hay Pokémon de tipo Veneno en el equipo. El multiplicador se acumula con más Pokémon Veneno.",
+    pokemon:["Gengar","Salandit","Salazzle","Dragalge","Toxicroak","Tentacruel","Muk","Alolan Muk","Croagunk","Scolipede"],
+    alt:["Haunter","Gastly","Weezing","Koffing"],
+    note:"Requiere construir el equipo alrededor del tipo Veneno. Muy efectivo en stages débiles al veneno con equipo dedicado."
+  },
+  barrierbash: {
+    name:"Rompebarreras+", en:"Barrier Bash+", tier:"B", tierColor:"#c8b400",
+    desc:"Elimina 1 barrera de hielo con alta probabilidad (50/100/100%) pero sin el multiplicador de daño de Anulabarreras.",
+    pokemon:["Pikachu gorra Hoenn","Magnemite","Magneton","Jigglypuff","Clefairy","Marill","Pichu","Snorunt","Emolga","Togekiss (base)"],
+    alt:[],
+    note:"La versión sin '+' tiene probabilidad mucho menor. Con SL5 la versión '+' es bastante confiable. Opción secundaria vs barreras."
+  },
+  spookify: {
+    name:"Aterrizante", en:"Spookify+", tier:"B", tierColor:"#c8b400",
+    desc:"Infunde miedo al rival paralizándolo durante 1 turno. Versión espectral del estado de parálisis.",
+    pokemon:["Mismagius","Lampent","Chandelure","Dusknoir","Haunter","Golurk","Cofagrigus","Drifblim"],
+    alt:["Duskull","Dusclops","Shuppet","Banette"],
+    note:"Útil en stages de tipo Fantasma donde el equipo está limitado a ese tipo. La corta duración la hace menos eficiente que las parálisis estándar."
+  },
+  skyblast: {
+    name:"Ataque aéreo", en:"Sky Blast", tier:"B", tierColor:"#c8b400",
+    desc:"Multiplica el daño cuando todos los Pokémon del equipo son del mismo tipo. Extremadamente potente en equipos monótipo bien construidos.",
+    pokemon:["Skarmory","Togekiss","Braviary","Mandibuzz","Noivern","Hawlucha","Aerodactyl","Noctowl"],
+    alt:["Pidgeot","Swellow","Pelipper"],
+    note:"Requiere equipo completamente del mismo tipo, sacrificando cobertura y flexibilidad táctica."
+  },
+  rockcombo: {
+    name:"Combo roca", en:"Rock Combo", tier:"B", tierColor:"#c8b400",
+    desc:"Multiplica el daño de todos los Pokémon durante un combo si hay al menos un Pokémon de tipo Roca en el equipo.",
+    pokemon:["Terrakion","Golem","Tyranitar","Rampardos","Lycanroc","Nihilego","Minior"],
+    alt:["Geodude","Graveler","Kabuto","Kabutops","Omanyte","Omastar"],
+    note:"Efectivo en stages débiles a Roca con equipo tipo Roca. Requiere Skill Swapper para los mejores portadores."
+  },
+  stabilize: {
+    name:"Estabiliza+", en:"Stabilize+", tier:"C", tierColor:"#4aaa22",
+    desc:"Reemplaza 3 fichas de Pokémon enviadas por el rival con fichas propias del usuario, convirtiendo interferencias en oportunidades de combo.",
+    pokemon:["Magnezone","Klefki","Mawile","Togedemaru","Klang","Klinklang"],
+    alt:["Magnemite","Magneton","Mimikyu"],
+    note:"La versión sin '+' solo reemplaza 1 ficha. Situacional pero puede ser decisivo en stages donde el rival inunda el tablero."
+  },
+  burn: {
+    name:"Abrasivo", en:"Burn", tier:"C", tierColor:"#4aaa22",
+    desc:"Quema al rival durante 3 turnos. Mientras está quemado recibe ×1.5 daño de Pokémon de tipo Fuego.",
+    pokemon:["Charmeleon","Charizard","Pikachu disfraz Charizard","Numel","Darmanitan","Fennekin","Camerupt"],
+    alt:["Hitmonchan","Moltres"],
+    note:"El multiplicador ×1.5 solo beneficia ataques de tipo Fuego. Muchos tipos son inmunes: Agua, Dragón, Fantasma, Fuego, Roca, Tierra y Veneno."
+  },
+  poison: {
+    name:"Envenenante", en:"Poison", tier:"C", tierColor:"#4aaa22",
+    desc:"Envenena al rival, causando daño pasivo durante varios turnos. Útil en stages largas para desgastar la barra de vida.",
+    pokemon:["Dragalge","Toxicroak","Muk","Alolan Muk","Tentacruel","Weezing","Nidoking","Nidoqueen","Arbok","Gengar"],
+    alt:["Grimer","Koffing","Ekans"],
+    note:"El daño pasivo acumulado puede ser relevante en stages largas, pero en stages cortas es insuficiente."
+  },
+  crowdpower: {
+    name:"Dominio menor", en:"Crowd Power", tier:"C", tierColor:"#4aaa22",
+    desc:"Aumenta el daño según las interferencias del rival en tablero. Similar a Dominio pero con multiplicador base más bajo.",
+    pokemon:["Slowbro","Corsola","Mantine","Wailmer","Spheal","Lumineon","Luvdisc"],
+    alt:[],
+    note:"La diferencia con Dominio es el multiplicador. Pokémon con Dominio completo son siempre preferibles cuando están disponibles."
+  },
+  hittingstreakplus: {
+    name:"Racha de golpes+", en:"Hitting Streak+", tier:"C", tierColor:"#4aaa22",
+    desc:"Versión mejorada: el multiplicador sube más rápido por turno consecutivo. Extremadamente alta si se mantiene, pero complicada de sostener.",
+    pokemon:["Marshadow (forma Zenith)"],
+    alt:[],
+    note:"Solo disponible nativamente en Marshadow. Potencial enorme en teoría, pero mantener la racha en stages difíciles es complicado."
+  },
+  nonstopplus: {
+    name:"Sin parar+", en:"Non Stop+", tier:"C", tierColor:"#4aaa22",
+    desc:"Daño extra acumulativo en turnos consecutivos donde el jugador ataca. Requiere tablero limpio sin interrupciones.",
+    pokemon:["Kommo-o","Buzzwole","Nihilego","Pheromosa","Xurkitree"],
+    alt:["Jangmo-o","Hakamo-o","Kartana"],
+    note:"En stages con muchas interferencias del rival la racha se interrumpe constantemente. Mejor en stages con turnos limpios."
+  },
+  dragonshriek: {
+    name:"Alarido dragón", en:"Dragon Shriek", tier:"C", tierColor:"#4aaa22",
+    desc:"Paraliza al rival durante 5 turnos, evitando interferencias. Probabilidad 20/40/80%. Larga duración si activa.",
+    pokemon:["Magikarp variocolor"],
+    alt:[],
+    note:"Magikarp variocolor la tiene como capacidad alterna. La duración de 5 turnos es excelente, pero la tasa media hace que sea inconsistente."
+  },
+  quake: {
+    name:"Terremoto", en:"Quake", tier:"C", tierColor:"#4aaa22",
+    desc:"Daño sólido de tipo Tierra sin efectos adicionales. Capacidad de daño directa sin condiciones.",
+    pokemon:["Groudon","Donphan","Rhyperior","Garchomp","Gliscor","Mudsdale","Nidoking","Dugtrio"],
+    alt:["Diglett","Cubone","Marowak","Sandshrew"],
+    note:"Buena base de daño pero sin extras. Superada por capacidades con efectos combinados del mismo tipo."
+  },
+  pyre: {
+    name:"Hoguera", en:"Pyre", tier:"C", tierColor:"#4aaa22",
+    desc:"Capacidad de daño Fuego consistente. Decente en su categoría pero con fuerte competencia de otras capacidades de Fuego.",
+    pokemon:["Ho-Oh","Heatran","Magmar","Magmortar","Flareon","Arcanine","Entei"],
+    alt:["Torchic","Combusken","Numel","Camerupt"],
+    note:"Ho-Oh y Heatran tienen buenas estadísticas base que la hacen funcional. No excepcional comparado con capacidades más modernas."
+  },
+  mindzap: {
+    name:"Choque mental", en:"Mind Zap", tier:"C", tierColor:"#4aaa22",
+    desc:"Aplica parálisis al rival y reduce su ataque simultáneamente. Efecto doble de control y debilitamiento, pero de corta duración.",
+    pokemon:["Hypno","Beheeyem","Gothitelle","Sigilyph","Reuniclus","Malamar"],
+    alt:["Drowzee","Elgyem","Gothorita"],
+    note:"El efecto doble es interesante pero en práctica la parálisis estándar suele ser más eficiente y duradera."
+  },
+  quirky: {
+    name:"Antojo", en:"Quirky", tier:"D", tierColor:"#00B4D8",
+    desc:"A veces elimina 1 Pokémon de su misma especie del tablero. Efecto mínimo sin impacto en el rival.",
+    pokemon:["Farfetch'd","Haunter","Smoochum","Magby","Cherubi","Glameow","Mime Jr.","Finneon","Pidove","Yamask","Flabébé","Sentret","Hoothoot"],
+    alt:[],
+    note:"Sin efecto sobre el rival. Su única utilidad real es limpiar mínimamente el tablero."
+  },
+  quirkyplus: {
+    name:"Antojo+", en:"Quirky+", tier:"D", tierColor:"#00B4D8",
+    desc:"A veces elimina 2 Pokémon de su misma especie del tablero. Ligeramente mejor que Antojo, aún sin gran impacto.",
+    pokemon:["Weezing","Wooper","Burmy basura","Cherrim","Lumineon","Gothitelle","Gogoat","Furfrou","Malamar","Xerneas","Bounsweet","Pikachu festivo"],
+    alt:[],
+    note:"La variante doble ayuda un poco más a crear combos pero sigue siendo de utilidad muy limitada."
+  },
+  megaboostpp: {
+    name:"Megafuerza++", en:"Mega Boost++", tier:"D", tierColor:"#00B4D8",
+    desc:"Agrega 4 cargas al medidor Mega por activación. Suena bien, pero tiene una tasa de activación pésima: 10/20/60%.",
+    pokemon:["Eevee variocolor","Pikachu festivo especial","Silvally","Floette cómplice"],
+    alt:["Cosmog","Cosmoem"],
+    note:"Megafuerza+ con 30/60/100% es claramente superior en práctica. El número extra de cargas no compensa la probabilidad tan baja."
+  },
+  relentless: {
+    name:"Tenaz", en:"Relentless", tier:"D", tierColor:"#00B4D8",
+    desc:"El daño aumenta cuanto más tiempo lleve sin activarse la capacidad. Muy difícil de aprovechar estratégicamente.",
+    pokemon:["Pangoro","Machoke","Hariyama","Conkeldurr","Bewear","Passimian"],
+    alt:[],
+    note:"El acumulado se pierde al activarse. Requiere deliberadamente no activar la capacidad, lo cual es contraprogramático."
+  },
+  pummel: {
+    name:"Beligerante", en:"Pummel", tier:"D", tierColor:"#00B4D8",
+    desc:"Multiplica el ataque por 2 de todos los Pokémon de tipo Lucha durante un combo. Solo funciona en equipos tipo Lucha.",
+    pokemon:["Machop","Lucario","Pangoro","Hariyama","Passimian"],
+    alt:[],
+    note:"Requiere equipo monótipo Lucha y combo activo. Muy dependiente de la composición del equipo y del tablero."
+  },
+  sandsport: {
+    name:"Arenal", en:"Sand Sport", tier:"D", tierColor:"#00B4D8",
+    desc:"Paraliza al rival durante 2 turnos, evitando interferencias. Variante de parálisis de corta duración.",
+    pokemon:["Sandygast","Palossand","Hippopotas","Hippowdon"],
+    alt:["Sandshrew","Sandslash"],
+    note:"La parálisis de 2 turnos es inferior a las versiones estándar (3-4 turnos) de Paralizante. Situacional."
+  },
+  whirlpool: {
+    name:"Torbellino", en:"Whirlpool", tier:"F", tierColor:"#7B5EA7",
+    desc:"Crea un pequeño torbellino que elimina pocas fichas del tablero. Efecto mínimo sin impacto real en combate.",
+    pokemon:["Poliwag","Poliwhirl","Tentacool","Tentacruel","Horsea","Seadra"],
+    alt:[],
+    note:"Una de las capacidades menos útiles del juego. Hay mejores opciones para el tipo Agua en casi todos los contextos."
+  },
+  skillbase: {
+    name:"Capacidad base", en:"Skill (base)", tier:"F", tierColor:"#7B5EA7",
+    desc:"Capacidad genérica sin ningún efecto especial. Solo causa daño básico. Útil únicamente en las primeras fases del juego.",
+    pokemon:["Caterpie","Metapod","Weedle","Kakuna","Pidgey (base)","Sentret","Hoothoot","Surskit","Silcoon","Cascoon","Burmy"],
+    alt:[],
+    note:"Es la capacidad que tiene todo Pokémon antes de mejorarla con Skill Booster o Skill Swapper."
+  },
+  agility: {
+    name:"Agilidad", en:"Agility", tier:"F", tierColor:"#7B5EA7",
+    desc:"Reduce el tiempo necesario para la mega evolución. En práctica, Megafuerza y Megafuerza+ son mucho más efectivos.",
+    pokemon:["Pikachu (base)","Raichu","Jolteon","Electrode","Manectric","Zebstrika"],
+    alt:["Pachirisu","Elekid","Electabuzz"],
+    note:"Completamente obsoleta con Megafuerza disponible. El medidor Mega no se llena por tiempo, sino por matches del mismo tipo."
+  },
+  rockify: {
+    name:"Piedrifica", en:"Rockify", tier:"F", tierColor:"#7B5EA7",
+    desc:"Convierte fichas del tablero en rocas disruptoras. Esto perjudica al propio jugador, añadiendo obstáculos a su tablero.",
+    pokemon:["Geodude","Onix","Bonsly","Sudowoodo","Roggenrola","Crustle"],
+    alt:["Rockruff","Stonjourner"],
+    note:"Una de las peores capacidades del juego: daña tu propio tablero. Solo tiene sentido teórico si el equipo destruye rocas para combos."
+  },
+  naptime: {
+    name:"Siestita", en:"Nap Time", tier:"F", tierColor:"#7B5EA7",
+    desc:"Hace dormir brevemente al rival. Baja tasa de activación y corta duración. Completamente superado por Adormilante.",
+    pokemon:["Komala","Slaking","Jigglypuff (base)","Munna","Musharna","Drowzee","Hypno"],
+    alt:[],
+    note:"Adormilante (Sleep Charm) hace lo mismo durante más turnos y con mejor tasa de activación. No hay razón para preferir esta."
+  }
+};
+
+function openModal(key) {
+  const d = DATA[key];
+  if (!d) return;
+  const badge = document.getElementById('modalTierBadge');
+  badge.textContent = `TIER ${d.tier}`;
+  badge.style.background = d.tierColor + '28';
+  badge.style.color = d.tierColor;
+  badge.style.border = `1px solid ${d.tierColor}55`;
+  document.getElementById('modalName').textContent = d.name;
+  document.getElementById('modalEn').textContent = d.en;
+  document.getElementById('modalDesc').textContent = d.desc;
+  const grid = document.getElementById('modalPokemon');
+  grid.innerHTML = d.pokemon.map(p => `<div class="pokemon-chip">${p}</div>`).join('');
+  const altDiv = document.getElementById('modalAlt');
+  if (d.alt && d.alt.length > 0) {
+    altDiv.innerHTML = `<div class="modal-section-title" style="margin-top:1rem;">Capacidad alterna (vía Cambia-capacidad)</div><div class="pokemon-grid">${d.alt.map(p => `<div class="pokemon-chip alt">${p}</div>`).join('')}</div>`;
+  } else { altDiv.innerHTML = ''; }
+  document.getElementById('modalNote').textContent = d.note ? `💡 ${d.note}` : '';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeOnOverlay(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
